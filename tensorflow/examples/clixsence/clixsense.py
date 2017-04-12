@@ -73,9 +73,7 @@ INITIAL_LEARNING_RATE = 0.1       # Initial learning rate.
 # names of the summaries when visualizing a model.
 TOWER_NAME = 'tower'
 
-# TODO...
-DATA_URL = 'clixsense-binary.tar.gz'
-
+DATA_URL = 'https://github.com/lengerrong/tensorflow/blob/master/tensorflow/examples/clixsence/clixsense-binary.tar.gz'
 
 def _activation_summary(x):
   """Helper to create summaries for activations.
