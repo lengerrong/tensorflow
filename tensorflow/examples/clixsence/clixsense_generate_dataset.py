@@ -1,31 +1,8 @@
-from PIL import Image
-import numpy as np
+import clixsense
 import os
 import subprocess
 import sys
-
-IMAGE_GEN_OK = True
-IMAGE_GEN_FAIL = False
-
-def image_gen(filepath, label):
-  class ImageGen(object):
-    pass
-  result = ImageGen()
-  result.status = IMAGE_GEN_FAIL
-  try:
-    im = Image.open(filepath)
-    im = (np.array(im))
-
-    r = im[:,:,0].flatten()
-    g = im[:,:,1].flatten()
-    b = im[:,:,2].flatten()
-
-    labels = [label]
-    result.imagebytes = np.array(list(labels) + list(r) + list(g) + list(b), np.uint8)
-    result.status = IMAGE_GEN_OK
-  except Exception, e:
-    print (e)
-  return result
+import Image
 
 def main(argv):
   folder = argv[0]
@@ -74,9 +51,9 @@ def main(argv):
       elif (label == '0'):
         cat = cat + 1
       print ("generate data for %s" % filepath)
-      result = image_gen(filepath, label)
+      result = clixsense.image_gen(filepath, label)
       os.remove(filepath)
-      if (result.status == IMAGE_GEN_OK):
+      if (result.status == clixsense.IMAGE_GEN_OK):
         if (dc < 5 and cc >= NUM_MAX_EXAMPLES_PER_DATA_BATCH):
           cc = 0
           dc = dc + 1
@@ -90,5 +67,6 @@ def main(argv):
       print ('%s : %s' % (e, filepath))
   dataset_f.close()
   print ("%d cats found, %d dogs found, %d not a cat or dog" % (cat, dog, nor))
+
 if __name__ == '__main__':
   main(sys.argv)

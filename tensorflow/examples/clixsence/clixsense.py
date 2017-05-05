@@ -43,6 +43,8 @@ import tarfile
 from six.moves import urllib
 import tensorflow as tf
 
+import Image
+import numpy as np
 import clixsense_input
 
 FLAGS = tf.app.flags.FLAGS
@@ -158,6 +160,29 @@ def distorted_inputs():
     labels = tf.cast(labels, tf.float16)
   return images, labels
 
+IMAGE_GEN_OK = True
+IMAGE_GEN_FAIL = False
+
+def image_gen(filepath, label):
+  class ImageGen(object):
+    pass
+  result = ImageGen()
+  result.status = IMAGE_GEN_FAIL
+  try:
+    im = Image.open(filepath)
+    im = (np.array(im))
+
+    r = im[:,:,0].flatten()
+    g = im[:,:,1].flatten()
+    b = im[:,:,2].flatten()
+
+    labels = [label]
+    result.imagebytes = np.array(list(labels) + list(r) + list(g) + list(b), np.uint8)
+    result.status = IMAGE_GEN_OK
+  except Exception, e:
+    print (e)
+  return result
+
 def distorted_inputs_one(input_file):
   images, labels = clixsense_input.distorted_inputs_one(input_file)
   if FLAGS.use_fp16:
@@ -214,7 +239,6 @@ def inference_one(images):
     pre_activation = tf.nn.bias_add(conv, biases)
     conv1 = tf.nn.relu(pre_activation, name=scope.name)
     _activation_summary(conv1)
-
   # pool1
   pool1 = tf.nn.max_pool(conv1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1],
                          padding='SAME', name='pool1')
@@ -251,7 +275,6 @@ def inference_one(images):
     biases = _variable_on_cpu('biases', [384], tf.constant_initializer(0.1))
     local3 = tf.nn.relu(tf.matmul(reshape, weights) + biases, name=scope.name)
     _activation_summary(local3)
-
   # local4
   with tf.variable_scope('local4') as scope:
     weights = _variable_with_weight_decay('weights', shape=[384, 192],
